@@ -23,4 +23,9 @@ defmodule LandsOfAmericaWeb.Router do
   # scope "/api", LandsOfAmericaWeb do
   #   pipe_through :api
   # end
+  scope "/api/v1", LandsOfAmericaWeb do
+    pipe_through :api
+
+    get "/users", UserController, :index
+  end
 end
