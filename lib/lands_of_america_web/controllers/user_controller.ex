@@ -1,21 +1,42 @@
 defmodule LandsOfAmericaWeb.UserController do
   use LandsOfAmericaWeb, :controller
 
+  alias LandsOfAmerica.Core
+  alias LandsOfAmerica.Core.User
+
+  action_fallback LandsOfAmericaWeb.FallbackController
+
   def index(conn, _params) do
-    users = [
-      %{name: "Prashant",
-        age: 10,
-        hometown: "Nainital"},
+    users = Core.list_users()
+    render(conn, "index.json", users: users)
+  end
 
-      %{name: "Jackson",
-        age: 45,
-        hometown: "Mississippi"},
+  def create(conn, %{"user" => user_params}) do
+    with {:ok, %User{} = user} <- Core.create_user(user_params) do
+      conn
+      |> put_status(:created)
+      |> put_resp_header("location", user_path(conn, :show, user))
+      |> render("show.json", user: user)
+    end
+  end
 
-      %{name: "Susto",
-        age: 34,
-        hometown: "Havana"}
-    ]
+  def show(conn, %{"id" => id}) do
+    user = Core.get_user!(id)
+    render(conn, "show.json", user: user)
+  end
 
-    json conn, users
+  def update(conn, %{"id" => id, "user" => user_params}) do
+    user = Core.get_user!(id)
+
+    with {:ok, %User{} = user} <- Core.update_user(user, user_params) do
+      render(conn, "show.json", user: user)
+    end
+  end
+
+  def delete(conn, %{"id" => id}) do
+    user = Core.get_user!(id)
+    with {:ok, %User{}} <- Core.delete_user(user) do
+      send_resp(conn, :no_content, "")
+    end
   end
 end
